@@ -51,10 +51,14 @@ def get_db_connection():
 arduino = get_arduino_connection('/dev/tty.usbmodem1a1211')
 cca_message = None
 while True:
-	cca_message = arduino.readline()
-	if cca_message:
-		# Handle message from arduino
+	try:
+		cca_message = arduino.readline()
+		if cca_message:
+			# Handle message from arduino
+			pass
+	except:
 		pass
+
 	db = get_db_connection()
 	db_messages = db.execute('select id, appid, data_blob from cc_messages where new=1 order by created')
 	for message in db_messages:
