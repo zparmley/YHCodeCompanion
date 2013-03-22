@@ -1,9 +1,18 @@
+import json
+import sqlite3
+
 from twisted.protocols.basic import LineReceiver
 from twisted.internet.protocol import Factory
 from twisted.internet.endpoints import TCP4ServerEndpoint
 from twisted.internet import reactor
 
-from code_companion import CodeCompanion
+
+APP_APPID_MAP = {
+    'TESTIFY': 1,
+    # 2: 'gitprecommit',
+    # 3: 'trac',
+    # 4: 'happymaker'
+}
 
 class MessageReceiver(LineReceiver):
 
@@ -11,22 +20,23 @@ class MessageReceiver(LineReceiver):
         print "Got a line:", line
         app, message = line.split(' ', 1)
 
+        
         if message == "FAIL":
-            self.factory.code_companion.set_led_color("red")
+            data = {'pass': True, 'success': True}
         elif message == "PASS":
-            self.factory.code_companion.set_led_color("green")
+            data = {'pass': False, 'success': True}
         else:
-            self.factory.code_companion.set_led_color("blue")
+            data = {'success': False}
+
+        appid = APP_APPID_MAP[app]
+        dbcon = sqlite3.connect('cc_messages.db')
+        dbcon.execute('insert into cc_messages (appid, created, data_blob) values (%s, %s, %s)' % (appid, int(time.time()), json.dumps(data)))
 
 
 class MessageReceiverFactory(Factory):
-    
-    protocol = MessageReceiver
 
-    def startFactory(self):
-        self.code_companion = CodeCompanion()
+    protocol = MessageReceiver
 
 endpoint = TCP4ServerEndpoint(reactor, 8080)
 endpoint.listen(MessageReceiverFactory())
 reactor.run()
-
