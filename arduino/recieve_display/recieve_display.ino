@@ -1,16 +1,12 @@
 #include <aJSON.h>
 #include <LiquidCrystal.h>
 
-// JSON TEST
 char* parseJson(char *jsonString);
 
+// rgb led pins
 int redPin = 9;
 int greenPin = 10;
 int bluePin = 6;
-
-//const byte MAXIMUM_INPUT_LENGTH = 500;
-char local_input[300];
-char endchar = '\n';
 
 // initialize the library with the numbers of the interface pins
 LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
@@ -24,7 +20,7 @@ void setup() {
   pinMode (redPin, OUTPUT);
   pinMode (bluePin, OUTPUT);
   pinMode (greenPin, OUTPUT);
-  updateRgbLed(255, 0, 0);
+  updateRgbLed(189, 234, 19);
   
   // setup serial communication
   Serial.begin(9600); 
@@ -50,7 +46,8 @@ void loop() {
 void readSerialLine() {
   if (Serial.available()) {
     int i;
-    int bytes_read = Serial.readBytesUntil(endchar, local_input, 300);
+    char local_input[300];
+    int bytes_read = Serial.readBytesUntil('\n', local_input, 300);
     char return_buffer[bytes_read+1];
     for (i=0; i<bytes_read; i++) {
       return_buffer[i] = local_input[i];
