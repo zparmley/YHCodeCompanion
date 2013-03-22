@@ -24,11 +24,11 @@ class TestifyMessageHandler(MessageHandler):
 			companion.rgb = [0, 0, 255]
 			companion.appstate = 3 # Arbitrary, i dont know...
 		elif data['pass'] == False:
-			companion.screen = ['  !TEST  FAIL!  ', 'simple code']
+			companion.screen = ['  !TESTS FAIL!  ', 'simple code, plz']
 			companion.rgb = [255, 0, 0]
 			companion.appstate = 2
 		elif data['pass'] == True:
-			companion.screen = ['  *TEST  PASS*  ', 'refactor']
+			companion.screen = ['  *TESTS PASS*  ', ' refactor, plz! ']
 			companion.rgb = [0, 255, 0]
 			companion.appstate = 1
 		self.arduino.write('%s\n' % companion.json)
