@@ -5,6 +5,7 @@ import sys
 from twisted.internet import reactor
 from twisted.internet.protocol import Protocol
 from twisted.internet.protocol import ClientCreator
+from cc_config import home_hostname
 
 
 class MessageSender(Protocol):
@@ -20,7 +21,7 @@ class MessageSender(Protocol):
 def sendMessage(app, message):
     """ Setup TCP connection, send message and disconnect """
     creator = ClientCreator(reactor, MessageSender)
-    d = creator.connectTCP("sfoengwifi53-252.clients.corp.yelpcorp.com", 8080)
+    d = creator.connectTCP(home_hostname, 8080)
     d.addCallback(lambda p: p.sendMessage(app, message))
     reactor.run()
 
