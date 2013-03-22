@@ -1,5 +1,6 @@
 import json
 import sqlite3
+import time
 
 from twisted.protocols.basic import LineReceiver
 from twisted.internet.protocol import Factory
@@ -30,7 +31,13 @@ class MessageReceiver(LineReceiver):
 
         appid = APP_APPID_MAP[app]
         dbcon = sqlite3.connect('cc_messages.db')
-        dbcon.execute('insert into cc_messages (appid, created, data_blob) values (%s, %s, %s)' % (appid, int(time.time()), json.dumps(data)))
+        dbcon.execute(
+            'insert into cc_messages (appid, created, data_blob) values (?, ?, ?)', (
+                appid, 
+                int(time.time()), 
+                json.dumps(data)
+            ))
+        dbcon.commit()
 
 
 class MessageReceiverFactory(Factory):
