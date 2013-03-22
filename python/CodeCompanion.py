@@ -1,10 +1,11 @@
 # Main app, reads from the DB and arduio, acts accordingly.
-import sqlite3
 import json
-
 import serial
+import sqlite3
+import time
 
 from CodeCompanionView import CodeCompanionView
+from cc_config import device
 
 class MessageHandler:
 	def __init__(self, arduino_connection):
@@ -15,6 +16,7 @@ class MessageHandler:
 
 class TestifyMessageHandler(MessageHandler):
 	def handleMessage(self, id, data):
+		print "Testify handle message", id, data
 		companion = CodeCompanionView()
 		companion.id = id
 		if data['success'] == False:
@@ -22,11 +24,11 @@ class TestifyMessageHandler(MessageHandler):
 			companion.rgb = [0, 0, 255]
 			companion.appstate = 3 # Arbitrary, i dont know...
 		elif data['pass'] == False:
-			companion.screen = ['uh, failure mode', 'bb reports suck']
+			companion.screen = ['  !TEST  FAIL!  ', 'simple code']
 			companion.rgb = [255, 0, 0]
 			companion.appstate = 2
 		elif data['pass'] == True:
-			companion.screen = ['Yaay! Hurrah!', 'BB is pleased.']
+			companion.screen = ['  *TEST  PASS*  ', 'refactor']
 			companion.rgb = [0, 255, 0]
 			companion.appstate = 1
 		self.arduino.write('%s\n' % companion.json)
@@ -41,28 +43,26 @@ APPID_MESSAGE_HANDLERS = {
 
 
 def get_arduino_connection(device):
-	return serial.Serial('/dev/tty.usbmodem1a1211', 9600, timeout=1)
+	return serial.Serial(device, 9600, timeout=1)
 def get_db_connection():
 	db = sqlite3.connect('cc_messages.db')
 	return db
 
+if __name__ == "__main__":
 
+	arduino = get_arduino_connection(device)
+	time.sleep(5) # wait for arduino to warm-up
 
-arduino = get_arduino_connection('/dev/tty.usbmodem1a1211')
-cca_message = None
-while True:
-	try:
-		cca_message = arduino.readline()
-		if cca_message:
-			# Handle message from arduino
-			pass
-	except:
-		pass
+	while True:
 
-	db = get_db_connection()
-	db_messages = db.execute('select id, appid, data_blob from cc_messages where new=1 order by created')
-	for message in db_messages:
-		handler = APPID_MESSAGE_HANDLERS.get(message[1], MessageHandler)(arduino)
-		handler.handleMessage(message[0], json.loads(message[2]))
-		db.execute('update cc_messages set new = 0 where id = %s' % message[0])
-		db.commit()
+		db = get_db_connection()
+		db_messages = db.execute('select id, appid, data_blob from cc_messages where new=1 order by created')
+
+		for message in db_messages:
+			handler = APPID_MESSAGE_HANDLERS.get(message[1], MessageHandler)(arduino)
+			handler.handleMessage(message[0], json.loads(message[2]))
+			db.execute('update cc_messages set new = 0 where id = %s' % message[0])
+			db.commit()
+
+		db.close()
+		time.sleep(.1)
