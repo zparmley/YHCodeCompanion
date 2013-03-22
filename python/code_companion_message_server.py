@@ -23,9 +23,9 @@ class MessageReceiver(LineReceiver):
 
         
         if message == "FAIL":
-            data = {'pass': True, 'success': True}
-        elif message == "PASS":
             data = {'pass': False, 'success': True}
+        elif message == "PASS":
+            data = {'pass': True, 'success': True}
         else:
             data = {'success': False}
 
